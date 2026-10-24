@@ -98,7 +98,7 @@ a { color: var(--orange); }
 /* ---------- 须知 ---------- */
 .intro { margin-top: 8px; }
 .intro summary { cursor: pointer; font-weight: 700; color: var(--orange); padding: 4px 0; }
-.intro-text { white-space: pre-wrap; line-height: 1.8; font-size: 13px; color: var(--muted); max-height: 420px; overflow:auto; }
+.intro-text { white-space: pre-wrap; line-height: 1.8; font-size: 13px; color: var(--muted); }
 
 /* ---------- 弹窗 ---------- */
 .modal-mask {

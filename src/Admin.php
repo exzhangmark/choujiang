@@ -156,21 +156,28 @@ class Admin
 
     private function settingsSave(Request $req): Response
     {
-        $title = trim((string)($req->post('site_title') ?? ''));
-        $cs = trim((string)($req->post('customer_service') ?? ''));
-        $intro = trim((string)($req->post('intro_text') ?? ''));
-        if ($title !== '') {
-            Db::set('site_title', $title);
+        // 仅更新“本次表单实际提交的字段”，避免改密码/改文案时互相覆盖已存值
+        $all = $req->post() ?: [];
+        if (array_key_exists('site_title', $all)) {
+            $title = trim((string)($all['site_title'] ?? ''));
+            if ($title !== '') {
+                Db::set('site_title', $title);
+            }
         }
-        Db::set('customer_service', $cs);
-        Db::set('intro_text', $intro);
-
-        $newPw = (string)($req->post('admin_password') ?? '');
-        if ($newPw !== '') {
-            Db::set('admin_password', password_hash($newPw, PASSWORD_DEFAULT));
-            // 修改密码后重新登录
-            $resp = $this->dashboard($req, '设置已保存，密码已更新，请重新登录');
-            return $resp->cookie(ADMIN_COOKIE, '', -1, '/', '', false, true);
+        if (array_key_exists('customer_service', $all)) {
+            Db::set('customer_service', trim((string)($all['customer_service'] ?? '')));
+        }
+        if (array_key_exists('intro_text', $all)) {
+            Db::set('intro_text', trim((string)($all['intro_text'] ?? '')));
+        }
+        if (array_key_exists('admin_password', $all)) {
+            $newPw = (string)($all['admin_password'] ?? '');
+            if ($newPw !== '') {
+                Db::set('admin_password', password_hash($newPw, PASSWORD_DEFAULT));
+                // 修改密码后重新登录
+                $resp = $this->dashboard($req, '设置已保存，密码已更新，请重新登录');
+                return $resp->cookie(ADMIN_COOKIE, '', -1, '/', '', false, true);
+            }
         }
         return $this->dashboard($req, '设置已保存');
     }
@@ -291,7 +298,7 @@ class Admin
                     ' . ($err ? '<p class="err">' . $this->e($err) . '</p>' : '') . '
                     <input class="input" type="password" name="password" placeholder="请输入后台密码" autofocus>
                     <button class="btn-primary" type="submit">登录</button>
-                    <p class="hint">默认密码 admin888，可在“前台文案 → 站点基础设置”中修改</p>
+                    <p class="hint">默认密码 admin888，可在“前台文案 → 修改后台密码”中修改</p>
                 </form>
             </div>');
         return new Response(200, ['Content-Type' => 'text/html; charset=utf-8'], $html);
@@ -351,7 +358,9 @@ class Admin
                     <h2>前台文案（展示给访客的文字）</h2>
                     ' . $this->textsForm($frontendTexts) . '
                     <h3>站点基础设置</h3>
-                    ' . $this->settingsForm($settings) . '
+                    ' . $this->siteSettingsForm($settings) . '
+                    <h3>修改后台密码</h3>
+                    ' . $this->passwordForm() . '
                 </section>
 
                 <section id="sec-update" class="sec">
@@ -509,7 +518,7 @@ class Admin
         return '<table class="tbl"><thead><tr><th>备注</th><th>次数</th><th>预设奖品</th><th>链接/操作</th></tr></thead><tbody>' . $rows . '</tbody></table>';
     }
 
-    private function settingsForm(array $s): string
+    private function siteSettingsForm(array $s): string
     {
         return '
         <form class="card form" method="post" action="/admin">
@@ -517,8 +526,17 @@ class Admin
             <label>站点标题<input class="input" name="site_title" value="' . $this->e($s['site_title']) . '"></label>
             <label>客服联系方式（支持换行，可写微信/Line/电话等）<textarea class="input" name="customer_service" rows="3">' . $this->e($s['customer_service']) . '</textarea></label>
             <label>抽奖须知文案<textarea class="input" name="intro_text" rows="12">' . $this->e($s['intro_text']) . '</textarea></label>
-            <label>修改后台密码（留空则不修改）<input class="input" type="password" name="admin_password" placeholder="新密码"></label>
             <button class="btn-primary" type="submit">保存设置</button>
+        </form>';
+    }
+
+    private function passwordForm(): string
+    {
+        return '
+        <form class="card form" method="post" action="/admin">
+            <input type="hidden" name="action" value="settings_save">
+            <label>修改后台密码（留空则不修改）<input class="input" type="password" name="admin_password" placeholder="新密码"></label>
+            <button class="btn-primary" type="submit">更新密码</button>
         </form>';
     }
 
@@ -529,7 +547,6 @@ class Admin
             'gate_desc' => ['label' => '无机会页说明（支持换行）', 'type' => 'textarea'],
             'gate_contact_label' => ['label' => '客服区标题', 'type' => 'input'],
             'customer_title' => ['label' => '领取信息标题', 'type' => 'input'],
-            'customer_hint' => ['label' => '领取信息提示', 'type' => 'textarea'],
             'prize_col_title' => ['label' => '奖品栏标题', 'type' => 'input'],
             'prize_col_hint' => ['label' => '奖品栏提示', 'type' => 'textarea'],
             'cs_title' => ['label' => '客服联系方式标题', 'type' => 'input'],
@@ -562,7 +579,7 @@ class Admin
 
     private function textsSave(Request $req): Response
     {
-        $keys = ['gate_title', 'gate_desc', 'gate_contact_label', 'customer_title', 'customer_hint', 'prize_col_title', 'prize_col_hint', 'cs_title', 'spin_button', 'trial_badge', 'trial_note', 'draws_left', 'result_claim', 'notice_title', 'prize_detail_btn', 'prize_detail_title'];
+        $keys = ['gate_title', 'gate_desc', 'gate_contact_label', 'customer_title', 'prize_col_title', 'prize_col_hint', 'cs_title', 'spin_button', 'trial_badge', 'trial_note', 'draws_left', 'result_claim', 'notice_title', 'prize_detail_btn', 'prize_detail_title'];
         $data = [];
         foreach ($keys as $k) {
             $data[$k] = trim((string)($req->post($k) ?? ''));

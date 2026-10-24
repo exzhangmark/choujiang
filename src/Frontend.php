@@ -97,7 +97,6 @@ class Frontend
                     <div class="card customer-card">
                         <h3>' . $this->e($T['customer_title'] ?? '领取信息') . '</h3>
                         ' . ($linkTitle !== '' ? '<div class="link-note" id="linkNote">📌 ' . $this->e($linkTitle) . '</div>' : '') . '
-                        ' . (!empty($T['customer_hint']) ? '<p class="hint">' . $this->e($T['customer_hint']) . '</p>' : '') . '
                     </div>
 
                     <div class="card prize-col">
