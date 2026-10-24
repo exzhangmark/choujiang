@@ -78,7 +78,6 @@ class Frontend
         <div class="app">
             <header class="app-header">
                 <h1 id="siteTitle">' . $this->e($title) . '</h1>
-                ' . ($linkTitle !== '' ? '<div class="link-title" id="linkTitle">' . $this->e($linkTitle) . '</div>' : '<div class="link-title" id="linkTitle"></div>') . '
             </header>
 
             <main class="main">

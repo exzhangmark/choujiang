@@ -7,9 +7,6 @@
   const $ = (s) => document.querySelector(s);
   let localUsed = L.used_draws || 0;
 
-  // 渲染链接标题（后台设置的链接备注/标题）
-  if (L.title && $('#linkTitle')) $('#linkTitle').textContent = L.title;
-
   // 绘制转盘
   Wheel.drawWheel(L.prizes, 0);
 
