@@ -553,6 +553,7 @@ class Admin
             'spin_button' => ['label' => '抽奖按钮文字', 'type' => 'input'],
             'trial_badge' => ['label' => '试玩模式标识', 'type' => 'input'],
             'trial_spin_button' => ['label' => '试玩模式按钮文字', 'type' => 'input'],
+            'spinning_text' => ['label' => '抽奖中按钮文字', 'type' => 'input'],
             'trial_note' => ['label' => '试玩提示语', 'type' => 'textarea'],
             'draws_left' => ['label' => '剩余次数文案（{left}=剩余 {total}=总次数）', 'type' => 'input'],
             'result_claim' => ['label' => '结果弹窗按钮文字', 'type' => 'input'],
@@ -580,7 +581,7 @@ class Admin
 
     private function textsSave(Request $req): Response
     {
-        $keys = ['gate_title', 'gate_desc', 'gate_contact_label', 'customer_title', 'prize_col_title', 'prize_col_hint', 'cs_title', 'spin_button', 'trial_badge', 'trial_spin_button', 'trial_note', 'draws_left', 'result_claim', 'notice_title', 'prize_detail_btn', 'prize_detail_title'];
+        $keys = ['gate_title', 'gate_desc', 'gate_contact_label', 'customer_title', 'prize_col_title', 'prize_col_hint', 'cs_title', 'spin_button', 'trial_badge', 'trial_spin_button', 'spinning_text', 'trial_note', 'draws_left', 'result_claim', 'notice_title', 'prize_detail_btn', 'prize_detail_title'];
         $data = [];
         foreach ($keys as $k) {
             $data[$k] = trim((string)($req->post($k) ?? ''));

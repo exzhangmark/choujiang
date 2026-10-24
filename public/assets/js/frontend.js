@@ -98,7 +98,7 @@
     if (left <= 0) return;
     const idx = localUsed;
     btn.disabled = true;
-    btn.textContent = '抽奖中…';
+    btn.textContent = T.spinning_text || '抽奖中…';
     fetch('/api/draw', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },

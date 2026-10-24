@@ -117,6 +117,7 @@ class Db
             'trial_badge' => '试玩模式 · 不计奖品',
             'trial_note' => '这是试玩演示，转盘结果仅供展示，实际奖品以您的专属抽奖链接为准 🎃',
             'trial_spin_button' => '🎃 免费试玩',
+            'spinning_text' => '抽奖中…',
             'draws_left' => '剩余抽奖次数：{left} / 共 {total} 次',
             'result_claim' => '收入奖品栏',
             'notice_title' => '📜 抽奖活动须知',
