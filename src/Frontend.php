@@ -72,7 +72,7 @@ class Frontend
             'texts' => $T,
         ], JSON_UNESCAPED_UNICODE);
 
-        $spinLabel = $trial ? '🎃 免费试玩' : ($T['spin_button'] ?: '抽奖');
+        $spinLabel = $trial ? ($T['trial_spin_button'] ?: '🎃 免费试玩') : ($T['spin_button'] ?: '抽奖');
 
         $body = '
         <div class="app">
