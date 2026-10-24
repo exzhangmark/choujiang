@@ -22,10 +22,13 @@
 # 1. 装 git（若未装）
 apt-get update && apt-get install -y git curl
 
-# 2. 用 token 克隆仓库（token 会写入服务器 git remote，供后续一键更新使用）
+# 2. 确保目标父目录存在（新装最小化系统可能没有 /var/www，否则 clone 报 No such file or directory）
+mkdir -p /var/www
+
+# 3. 用 token 克隆仓库（token 会写入服务器 git remote，供后续一键更新使用）
 git clone https://exzhangmark:你的服务器只读token@github.com/exzhangmark/choujiang.git /var/www/lottery
 
-# 3. 运行一键部署脚本
+# 4. 运行一键部署脚本
 cd /var/www/lottery
 DOMAIN=lucky.example.com bash deploy.sh
 ```
@@ -92,6 +95,7 @@ tail -f data/update.log      # 实时看进度
 | 打不开网页 / 502 | `journalctl -u caddy -n 50`；确认 `systemctl is-active caddy lottery` |
 | 一键更新卡住 | `tail -f /var/www/lottery/data/update.log` |
 | git pull 失败 | 多半是服务器 remote 没有有效 token：重新 `git remote set-url origin https://exzhangmark:新token@github.com/exzhangmark/choujiang.git` |
+| clone 报 `No such file or directory` | 目标父目录不存在，先 `mkdir -p /var/www` 再克隆；或克隆到已有目录（如 `$HOME/lottery`），再 `PROJECT_DIR=该路径 bash deploy.sh` |
 | HTTPS 证书签发失败 | 确认域名 DNS A 指向正确、80 端口公网可达；Let's Encrypt 有频率限制，别频繁重试 |
 | 转盘不转 / 结果不对 | 转盘只是动画，真实结果由链接预设决定。详见 `README.md` 常见问题 |
 | 忘记后台密码 | 删除 `data/lottery.db` 并重启（会清空所有数据，先备份！） |
