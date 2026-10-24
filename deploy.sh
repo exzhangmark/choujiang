@@ -156,7 +156,7 @@ Group=${RUN_USER}
 WorkingDirectory=${PROJECT_DIR}
 Environment=PORT=${PORT}
 Environment=WORKERS=${WORKERS}
-ExecStart=${PHP_BIN} ${PROJECT_DIR}/start.php
+ExecStart=${PHP_BIN} ${PROJECT_DIR}/start.php start
 Restart=always
 RestartSec=3
 
