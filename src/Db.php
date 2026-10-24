@@ -110,7 +110,7 @@ class Db
             'gate_desc' => "本次活动需通过专属抽奖链接参与。\n请联系客服领取您的抽奖链接。",
             'gate_contact_label' => '客服联系方式',
             'customer_title' => '领取信息',
-            'customer_hint' => '姓名须与订单收件人一致，金额单位：韩元',
+            'customer_hint' => '',
             'prize_col_title' => '🎁 我的奖品栏',
             'prize_col_hint' => '抽奖完成后请截图保存本页发给工作人员核对。',
             'cs_title' => '客服联系方式',

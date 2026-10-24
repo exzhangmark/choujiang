@@ -32,8 +32,6 @@ class Frontend
         $pool = Db::prizePool();
         $totalDraws = $link ? (int)$link['total_draws'] : 0;
         $linkTitle = $link['title'] ?? '';
-        $custName = $link['customer_name'] ?? '';
-        $custAmount = $link['customer_amount'] ?? '';
 
         $draws = [];
         if ($link) {
@@ -51,8 +49,6 @@ class Frontend
             'title' => $linkTitle,
             'total_draws' => $totalDraws,
             'used_draws' => $used,
-            'customer_name' => $custName,
-            'customer_amount' => $custAmount,
             'prizes' => array_map(function ($p) {
                 return [
                     'id' => $p['id'], 'level' => $p['level'], 'name' => $p['name'],
@@ -101,11 +97,7 @@ class Frontend
                     <div class="card customer-card">
                         <h3>' . $this->e($T['customer_title'] ?? '领取信息') . '</h3>
                         ' . ($linkTitle !== '' ? '<div class="link-note" id="linkNote">📌 ' . $this->e($linkTitle) . '</div>' : '') . '
-                        <p class="hint">' . $this->e($T['customer_hint'] ?? '') . '</p>
-                        <input id="custName" class="input" placeholder="您的姓名" value="' . $this->e($custName) . '">
-                        <input id="custAmount" class="input" placeholder="实际消费金额（韩元）" inputmode="numeric" value="' . $this->e($custAmount) . '">
-                        <button id="saveCust" class="btn-ghost">保存信息</button>
-                        <div id="custMsg" class="msg"></div>
+                        ' . (!empty($T['customer_hint']) ? '<p class="hint">' . $this->e($T['customer_hint']) . '</p>' : '') . '
                     </div>
 
                     <div class="card prize-col">

@@ -291,7 +291,7 @@ class Admin
                     ' . ($err ? '<p class="err">' . $this->e($err) . '</p>' : '') . '
                     <input class="input" type="password" name="password" placeholder="请输入后台密码" autofocus>
                     <button class="btn-primary" type="submit">登录</button>
-                    <p class="hint">默认密码 admin888，可在“站点设置”中修改</p>
+                    <p class="hint">默认密码 admin888，可在“前台文案 → 站点基础设置”中修改</p>
                 </form>
             </div>');
         return new Response(200, ['Content-Type' => 'text/html; charset=utf-8'], $html);
@@ -324,7 +324,6 @@ class Admin
                         <a href="#sec-links">抽奖链接</a>
                         <a href="#sec-prizes">奖项设置</a>
                         <a href="#sec-texts">前台文案</a>
-                        <a href="#sec-settings">站点设置</a>
                         <a href="#sec-update">系统更新</a>
                         <a href="/" target="_blank">前台预览</a>
                         <form method="post" action="/admin/logout" style="display:inline">
@@ -351,10 +350,7 @@ class Admin
                 <section id="sec-texts" class="sec">
                     <h2>前台文案（展示给访客的文字）</h2>
                     ' . $this->textsForm($frontendTexts) . '
-                </section>
-
-                <section id="sec-settings" class="sec">
-                    <h2>站点设置</h2>
+                    <h3>站点基础设置</h3>
                     ' . $this->settingsForm($settings) . '
                 </section>
 

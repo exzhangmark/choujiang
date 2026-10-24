@@ -138,9 +138,9 @@ a { color: var(--orange); }
 .di-name { font-weight: 700; }
 .di-value { color: var(--muted); font-size: 13px; }
 .di-imgs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 6px; }
-.di-imgs img { width: 72px; height: 72px; object-fit: cover; border-radius: 8px; background: #2a1a45; }
+.di-imgs img { width: 96px; height: 96px; object-fit: cover; border-radius: 8px; background: #2a1a45; flex: 0 0 auto; }
 .di-desc { color: var(--text); font-size: 13px; line-height: 1.6; margin: 4px 0 0; white-space: pre-wrap; word-break: break-word; }
 .modal-wide { max-width: 640px; }
 @media (max-width: 520px) {
-  .di-imgs img { width: 60px; height: 60px; }
+  .di-imgs img { width: 72px; height: 72px; }
 }

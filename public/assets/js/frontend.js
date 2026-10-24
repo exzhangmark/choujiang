@@ -33,9 +33,7 @@
   }
   renderLeft();
 
-  // 预填客户信息
-  if (L.customer_name) $('#custName').value = L.customer_name;
-  if (L.customer_amount) $('#custAmount').value = L.customer_amount;
+  // 领取信息仅展示后台链接备注/标题，不再收集姓名/金额
 
   // 已抽记录（刷新后重放）
   (L.draws || []).forEach(function (d) {
@@ -188,23 +186,7 @@
     $('#detailMask').classList.remove('show');
   });
 
-  // 保存客户信息
-  $('#saveCust').addEventListener('click', function () {
-    const name = $('#custName').value.trim();
-    const amount = $('#custAmount').value.trim();
-    const msg = $('#custMsg');
-    fetch('/api/customer', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: 'token=' + encodeURIComponent(L.token) + '&name=' + encodeURIComponent(name) + '&amount=' + encodeURIComponent(amount)
-    })
-      .then(function (r) { return r.json(); })
-      .then(function (res) {
-        msg.textContent = res.ok ? '✅ 信息已保存' : ('❌ ' + (res.msg || '保存失败'));
-        msg.style.color = res.ok ? '#7CFC9B' : '#ff7676';
-      })
-      .catch(function () { msg.textContent = '❌ 网络错误'; msg.style.color = '#ff7676'; });
-  });
+  // 领取信息不再需要保存（仅展示后台链接备注/标题），已移除输入框与保存按钮
 
   function escapeHtml(s) {
     return String(s).replace(/[&<>"']/g, function (c) {

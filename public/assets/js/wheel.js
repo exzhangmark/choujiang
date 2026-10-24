@@ -39,7 +39,6 @@
       ctx.fillStyle = '#fff';
       ctx.font = 'bold ' + Math.max(11, Math.min(16, 220 / n)) + 'px sans-serif';
       let label = prizes[i].level || ('奖项' + (i + 1));
-      if (prizes[i].name) label += ' ' + prizes[i].name;
       ctx.fillText(label, r - 12, 0);
       ctx.restore();
     }
