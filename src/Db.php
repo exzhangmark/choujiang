@@ -25,6 +25,7 @@ class Db
             self::$pdo->exec("PRAGMA busy_timeout = 5000;");
             self::$pdo->exec("PRAGMA journal_mode = WAL;");
             self::init();
+            self::migrate();
         }
         return self::$pdo;
     }
@@ -43,6 +44,7 @@ class Db
             value TEXT NOT NULL DEFAULT '',
             images TEXT NOT NULL DEFAULT '[]',
             color TEXT NOT NULL DEFAULT '#f0a500',
+            prize_desc TEXT NOT NULL DEFAULT '',
             sort INTEGER NOT NULL DEFAULT 0,
             limited INTEGER NOT NULL DEFAULT 0,
             total_qty INTEGER NOT NULL DEFAULT 9999,
@@ -90,6 +92,40 @@ class Db
     }
 
     // ---------- settings ----------
+    private static function migrate(): void
+    {
+        $pdo = self::pdo();
+        try {
+            $pdo->exec("ALTER TABLE prizes ADD COLUMN prize_desc TEXT NOT NULL DEFAULT ''");
+        } catch (\PDOException $e) { /* 列已存在则忽略 */ }
+    }
+
+    /** 前台展示文案（后台可编辑；未设置则用默认中文） */
+    public static function getFrontendTexts(): array
+    {
+        $raw = self::get('frontend_texts');
+        $t = $raw ? json_decode($raw, true) : [];
+        $defaults = [
+            'gate_title' => '您还没有抽奖机会',
+            'gate_desc' => "本次活动需通过专属抽奖链接参与。\n请联系客服领取您的抽奖链接。",
+            'gate_contact_label' => '客服联系方式',
+            'customer_title' => '领取信息',
+            'customer_hint' => '姓名须与订单收件人一致，金额单位：韩元',
+            'prize_col_title' => '🎁 我的奖品栏',
+            'prize_col_hint' => '抽奖完成后请截图保存本页发给工作人员核对。',
+            'cs_title' => '客服联系方式',
+            'spin_button' => '抽奖',
+            'trial_badge' => '试玩模式 · 不计奖品',
+            'trial_note' => '这是试玩演示，转盘结果仅供展示，实际奖品以您的专属抽奖链接为准 🎃',
+            'draws_left' => '剩余抽奖次数：{left} / 共 {total} 次',
+            'result_claim' => '收入奖品栏',
+            'notice_title' => '📜 抽奖活动须知',
+            'prize_detail_btn' => '🎁 奖品详情',
+            'prize_detail_title' => '奖品详情',
+        ];
+        return is_array($t) ? array_merge($defaults, $t) : $defaults;
+    }
+
     public static function get(string $k)
     {
         $stmt = self::pdo()->prepare("SELECT v FROM settings WHERE k = ?");
@@ -134,6 +170,7 @@ class Db
     private static function decodePrize(array $row): array
     {
         $row['images'] = json_decode($row['images'], true) ?: [];
+        $row['desc'] = $row['prize_desc'] ?? '';
         $row['limited'] = (int)$row['limited'];
         $row['total_qty'] = (int)$row['total_qty'];
         $row['used_qty'] = (int)$row['used_qty'];
@@ -144,20 +181,22 @@ class Db
     {
         $pdo = self::pdo();
         if (!empty($data['id'])) {
-            $stmt = $pdo->prepare("UPDATE prizes SET level=?, name=?, value=?, images=?, color=?, sort=?, limited=?, total_qty=? WHERE id=?");
+            $stmt = $pdo->prepare("UPDATE prizes SET level=?, name=?, value=?, images=?, color=?, sort=?, limited=?, total_qty=?, prize_desc=? WHERE id=?");
             $stmt->execute([
                 $data['level'], $data['name'], $data['value'],
                 json_encode($data['images'], JSON_UNESCAPED_UNICODE),
                 $data['color'], (int)$data['sort'], (int)$data['limited'], (int)$data['total_qty'],
+                $data['prize_desc'] ?? '',
                 (int)$data['id']
             ]);
             return (int)$data['id'];
         }
-        $stmt = $pdo->prepare("INSERT INTO prizes (level, name, value, images, color, sort, limited, total_qty) VALUES (?,?,?,?,?,?,?,?)");
+        $stmt = $pdo->prepare("INSERT INTO prizes (level, name, value, images, color, sort, limited, total_qty, prize_desc) VALUES (?,?,?,?,?,?,?,?,?)");
         $stmt->execute([
             $data['level'], $data['name'], $data['value'],
             json_encode($data['images'], JSON_UNESCAPED_UNICODE),
-            $data['color'], (int)$data['sort'], (int)$data['limited'], (int)$data['total_qty']
+            $data['color'], (int)$data['sort'], (int)$data['limited'], (int)$data['total_qty'],
+            $data['prize_desc'] ?? ''
         ]);
         return (int)$pdo->lastInsertId();
     }

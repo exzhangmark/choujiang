@@ -83,6 +83,8 @@ class Admin
                 return $this->prizeDelete($req);
             case 'settings_save':
                 return $this->settingsSave($req);
+            case 'texts_save':
+                return $this->textsSave($req);
             case 'link_generate':
                 return $this->linkGenerate($req);
             case 'link_delete':
@@ -104,6 +106,7 @@ class Admin
         $sort = (int)($req->post('sort') ?? 0);
         $limited = $req->post('limited') ? 1 : 0;
         $totalQty = (int)($req->post('total_qty') ?? 0);
+        $prizeDesc = trim((string)($req->post('prize_desc') ?? ''));
 
         // 图片：已有 + 新上传 + 新增URL
         $images = [];
@@ -133,10 +136,10 @@ class Admin
         $images = array_values(array_unique($images));
 
         if ($id > 0) {
-            Db::savePrize(compact('id', 'level', 'name', 'value', 'color', 'sort', 'limited', 'total_qty', 'images'));
+            Db::savePrize(compact('id', 'level', 'name', 'value', 'color', 'sort', 'limited', 'total_qty', 'images', 'prize_desc'));
             $msg = '奖项已更新';
         } else {
-            Db::savePrize(compact('level', 'name', 'value', 'color', 'sort', 'limited', 'total_qty', 'images'));
+            Db::savePrize(compact('level', 'name', 'value', 'color', 'sort', 'limited', 'total_qty', 'images', 'prize_desc'));
             $msg = '奖项已添加';
         }
         return $this->dashboard($req, $msg);
@@ -225,24 +228,42 @@ class Admin
     {
         $out = [];
         $files = $req->file('images');
-        if (empty($files) || empty($files['tmp_name'])) {
+        if (empty($files)) {
             return $out;
         }
-        $tmp = $files['tmp_name'];
-        // 多文件：tmp_name 为数组；单文件：为字符串
-        if (is_array($tmp)) {
-            $names = $files['name'] ?? [];
-            $errors = $files['error'] ?? [];
-            foreach ($tmp as $i => $path) {
-                if (($errors[$i] ?? 0) !== 0 || !is_file($path)) {
-                    continue;
+        // 兼容两种结构：
+        //  A) Workerman v5：$req->file('images') 返回“每个文件”的数组列表
+        //     [ ['name'=>..,'tmp_name'=>..,'error'=>0], ... ]
+        //  B) 旧式 $_FILES 结构：tmp_name 为字符串或数组
+        $list = [];
+        if (isset($files['tmp_name'])) {
+            $tmp = $files['tmp_name'];
+            if (is_array($tmp)) {
+                foreach ($tmp as $i => $path) {
+                    if (($files['error'][$i] ?? 1) !== 0 || !is_file($path)) {
+                        continue;
+                    }
+                    $list[] = ['tmp_name' => $path, 'name' => $files['name'][$i] ?? 'file', 'error' => 0];
                 }
-                $out[] = $this->moveUploaded($path, $names[$i] ?? 'file');
+            } else {
+                if (($files['error'] ?? 1) === 0 && is_file($tmp)) {
+                    $list[] = ['tmp_name' => $tmp, 'name' => $files['name'] ?? 'file', 'error' => 0];
+                }
             }
         } else {
-            if (($files['error'] ?? 0) === 0 && is_file($tmp)) {
-                $out[] = $this->moveUploaded($tmp, $files['name'] ?? 'file');
+            foreach ($files as $f) {
+                if (!is_array($f)) {
+                    continue;
+                }
+                $list[] = $f;
             }
+        }
+        foreach ($list as $f) {
+            $tmp = $f['tmp_name'] ?? null;
+            if (($f['error'] ?? 1) !== 0 || !is_string($tmp) || !is_file($tmp)) {
+                continue;
+            }
+            $out[] = $this->moveUploaded($tmp, $f['name'] ?? 'file');
         }
         return $out;
     }
@@ -289,6 +310,7 @@ class Admin
             'customer_service' => Db::get('customer_service'),
             'intro_text' => Db::get('intro_text'),
         ];
+        $frontendTexts = Db::getFrontendTexts();
 
         // 编辑中的奖项
         $editId = (int)($req->get('edit_prize') ?? 0);
@@ -299,8 +321,9 @@ class Admin
                 <header class="admin-head">
                     <h1>🎃 抽奖后台</h1>
                     <div class="admin-nav">
-                        <a href="#sec-prizes">奖项设置</a>
                         <a href="#sec-links">抽奖链接</a>
+                        <a href="#sec-prizes">奖项设置</a>
+                        <a href="#sec-texts">前台文案</a>
                         <a href="#sec-settings">站点设置</a>
                         <a href="#sec-update">系统更新</a>
                         <a href="/" target="_blank">前台预览</a>
@@ -311,6 +334,13 @@ class Admin
                 </header>
                 ' . ($msg ? '<div class="alert">' . $this->e($msg) . '</div>' : '') . '
 
+                <section id="sec-links" class="sec">
+                    <h2>抽奖链接生成</h2>
+                    ' . $this->linkGenerator($prizes, $extra) . '
+                    <h3>已生成链接（' . count($links) . '）</h3>
+                    ' . $this->linkTable($links, $req) . '
+                </section>
+
                 <section id="sec-prizes" class="sec">
                     <h2>奖项设置</h2>
                     ' . $this->prizeForm($editPrize) . '
@@ -318,11 +348,9 @@ class Admin
                     ' . $this->prizeTable($prizes) . '
                 </section>
 
-                <section id="sec-links" class="sec">
-                    <h2>抽奖链接生成</h2>
-                    ' . $this->linkGenerator($prizes, $extra) . '
-                    <h3>已生成链接（' . count($links) . '）</h3>
-                    ' . $this->linkTable($links, $req) . '
+                <section id="sec-texts" class="sec">
+                    <h2>前台文案（展示给访客的文字）</h2>
+                    ' . $this->textsForm($frontendTexts) . '
                 </section>
 
                 <section id="sec-settings" class="sec">
@@ -369,6 +397,7 @@ class Admin
                 <label>价值（如：价值 4000 元）<input class="input" name="value" value="' . $this->e($p['value']) . '"></label>
                 <label>排序（越小越靠前）<input class="input" type="number" name="sort" value="' . (int)$p['sort'] . '"></label>
             </div>
+            <label>奖项介绍（展示在“奖品详情”弹窗中）<textarea class="input" name="prize_desc" rows="2" placeholder="如：万圣节限量礼盒，含……">' . $this->e($p['desc'] ?? '') . '</textarea></label>
             <div class="row">
                 <label>转盘颜色<input class="input" type="color" name="color" value="' . $this->e($p['color']) . '"></label>
                 <label class="chk"><input type="checkbox" name="limited" value="1" ' . ($p['limited'] ? 'checked' : '') . '> 限量（抽完即止）</label>
@@ -399,6 +428,7 @@ class Admin
                 <td>' . $this->e($p['value']) . '</td>
                 <td><span class="dot" style="background:' . $this->e($p['color']) . '"></span></td>
                 <td>' . ($p['limited'] ? '限量 ' . $p['used_qty'] . '/' . $p['total_qty'] : '不限') . '</td>
+                <td class="desc-cell">' . $this->e($p['desc'] ?? '') . '</td>
                 <td class="ops">
                     <a class="btn-ghost" href="/admin?edit_prize=' . $p['id'] . '">编辑</a>
                     <form method="post" action="/admin" style="display:inline" onsubmit="return confirm(\'确定删除？\');">
@@ -409,7 +439,7 @@ class Admin
                 </td>
             </tr>';
         }
-        return '<table class="tbl"><thead><tr><th>图</th><th>等级</th><th>名称</th><th>价值</th><th>颜色</th><th>数量</th><th>操作</th></tr></thead><tbody>' . $rows . '</tbody></table>';
+        return '<table class="tbl"><thead><tr><th>图</th><th>等级</th><th>名称</th><th>价值</th><th>颜色</th><th>数量</th><th>介绍</th><th>操作</th></tr></thead><tbody>' . $rows . '</tbody></table>';
     }
 
     private function linkGenerator(array $prizes, array $extra): string
@@ -433,7 +463,7 @@ class Admin
         return '
         <form class="card form" method="post" action="/admin" id="linkForm">
             <input type="hidden" name="action" value="link_generate">
-            <label>链接备注/标题（可选）<input class="input" name="title" placeholder="如：客户A-订单12345"></label>
+            <label>链接备注/标题（显示在前台页面）<input class="input" name="title" placeholder="如：客户A-订单12345"></label>
             <label>抽奖次数
                 <select class="input" name="draws_count" id="drawsCount" onchange="buildDrawRows()">
                     ' . implode('', array_map(fn($i) => '<option value="' . $i . '">' . $i . ' 次</option>', range(1, 10))) . '
@@ -494,6 +524,55 @@ class Admin
             <label>修改后台密码（留空则不修改）<input class="input" type="password" name="admin_password" placeholder="新密码"></label>
             <button class="btn-primary" type="submit">保存设置</button>
         </form>';
+    }
+
+    private function textsForm(array $t): string
+    {
+        $fields = [
+            'gate_title' => ['label' => '无机会页标题', 'type' => 'input'],
+            'gate_desc' => ['label' => '无机会页说明（支持换行）', 'type' => 'textarea'],
+            'gate_contact_label' => ['label' => '客服区标题', 'type' => 'input'],
+            'customer_title' => ['label' => '领取信息标题', 'type' => 'input'],
+            'customer_hint' => ['label' => '领取信息提示', 'type' => 'textarea'],
+            'prize_col_title' => ['label' => '奖品栏标题', 'type' => 'input'],
+            'prize_col_hint' => ['label' => '奖品栏提示', 'type' => 'textarea'],
+            'cs_title' => ['label' => '客服联系方式标题', 'type' => 'input'],
+            'spin_button' => ['label' => '抽奖按钮文字', 'type' => 'input'],
+            'trial_badge' => ['label' => '试玩模式标识', 'type' => 'input'],
+            'trial_note' => ['label' => '试玩提示语', 'type' => 'textarea'],
+            'draws_left' => ['label' => '剩余次数文案（{left}=剩余 {total}=总次数）', 'type' => 'input'],
+            'result_claim' => ['label' => '结果弹窗按钮文字', 'type' => 'input'],
+            'notice_title' => ['label' => '活动须知标题', 'type' => 'input'],
+            'prize_detail_btn' => ['label' => '奖品详情按钮文字', 'type' => 'input'],
+            'prize_detail_title' => ['label' => '奖品详情弹窗标题', 'type' => 'input'],
+        ];
+        $rows = '';
+        foreach ($fields as $k => $f) {
+            $val = $t[$k] ?? '';
+            if ($f['type'] === 'textarea') {
+                $rows .= '<label>' . $f['label'] . '<textarea class="input" name="' . $k . '" rows="2">' . $this->e($val) . '</textarea></label>';
+            } else {
+                $rows .= '<label>' . $f['label'] . '<input class="input" name="' . $k . '" value="' . $this->e($val) . '"></label>';
+            }
+        }
+        return '
+        <form class="card form" method="post" action="/admin">
+            <input type="hidden" name="action" value="texts_save">
+            ' . $rows . '
+            <button class="btn-primary" type="submit">保存文案</button>
+        </form>
+        <p class="hint">这些文字会展示给访客，可随时修改；留空则使用默认中文。</p>';
+    }
+
+    private function textsSave(Request $req): Response
+    {
+        $keys = ['gate_title', 'gate_desc', 'gate_contact_label', 'customer_title', 'customer_hint', 'prize_col_title', 'prize_col_hint', 'cs_title', 'spin_button', 'trial_badge', 'trial_note', 'draws_left', 'result_claim', 'notice_title', 'prize_detail_btn', 'prize_detail_title'];
+        $data = [];
+        foreach ($keys as $k) {
+            $data[$k] = trim((string)($req->post($k) ?? ''));
+        }
+        Db::set('frontend_texts', $data);
+        return $this->dashboard($req, '文案已保存');
     }
 
     // ---------------- 工具 ----------------

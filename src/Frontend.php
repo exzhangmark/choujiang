@@ -5,66 +5,59 @@ use Workerman\Protocols\Http\Request;
 
 /**
  * 前端页面：
- *  - 无有效链接 → 提示“暂无抽奖机会，联系客服”
- *  - 有有效链接 → 大转盘 + 奖品栏 + 客户信息 + 须知
+ *  - 有有效链接且仍有次数 → 真实抽奖
+ *  - 无链接 / 已抽完 → 试玩模式（仍展示转盘，可试转，但不发奖、不记录）
+ *  - 所有展示文案均来自后台“前台文案”设置
  */
 class Frontend
 {
     public function index(Request $req): \Workerman\Protocols\Http\Response
     {
         $token = $req->get('t') ?? '';
+        $T = Db::getFrontendTexts();
         $siteTitle = Db::get('site_title') ?: '万圣节抽奖';
         $cs = Db::get('customer_service') ?: '';
         $intro = Db::get('intro_text') ?: '';
 
         $link = $token !== '' ? Db::getLinkByToken($token) : null;
+        $used = $link ? Db::usedDraws($link['id']) : 0;
+        $canDraw = $link && $used < $link['total_draws'];
 
-        if (!$link) {
-            return $this->gatePage($siteTitle, $cs, $intro);
-        }
-        return $this->wheelPage($siteTitle, $cs, $intro, $link, $token);
+        return $this->wheelPage($T, $siteTitle, $cs, $intro, $link, $token, !$canDraw);
     }
 
-    private function gatePage(string $title, string $cs, string $intro): \Workerman\Protocols\Http\Response
+    private function wheelPage(array $T, string $title, string $cs, string $intro, ?array $link, string $token, bool $trial): \Workerman\Protocols\Http\Response
     {
-        $html = $this->layout($title, '', '
-            <div class="gate">
-                <div class="gate-card">
-                    <h1>' . $this->e($title) . '</h1>
-                    <div class="gate-icon">🎃</div>
-                    <p class="gate-title">您还没有抽奖机会</p>
-                    <p class="gate-desc">本次活动需通过专属抽奖链接参与。<br>请联系客服领取您的抽奖链接。</p>
-                    <div class="cs-box">' . $this->nl2br($this->e($cs)) . '</div>
-                    ' . $this->introBlock($intro) . '
-                </div>
-            </div>
-        ');
-        return new \Workerman\Protocols\Http\Response(200, ['Content-Type' => 'text/html; charset=utf-8'], $html);
-    }
-
-    private function wheelPage(string $title, string $cs, string $intro, array $link, string $token): \Workerman\Protocols\Http\Response
-    {
-        $used = Db::usedDraws($link['id']);
+        $used = $link ? Db::usedDraws($link['id']) : 0;
         $pool = Db::prizePool();
+        $totalDraws = $link ? (int)$link['total_draws'] : 0;
+        $linkTitle = $link['title'] ?? '';
+        $custName = $link['customer_name'] ?? '';
+        $custAmount = $link['customer_amount'] ?? '';
+
         $draws = [];
-        foreach (Db::linkDraws($link['id']) as $d) {
-            $p = Db::getPrize($d['prize_id']);
-            if ($p) {
-                $draws[] = ['draw_index' => (int)$d['draw_index'], 'prize' => $p];
+        if ($link) {
+            foreach (Db::linkDraws($link['id']) as $d) {
+                $p = Db::getPrize($d['prize_id']);
+                if ($p) {
+                    $draws[] = ['draw_index' => (int)$d['draw_index'], 'prize' => $p];
+                }
             }
         }
 
         $bootstrap = json_encode([
             'token' => $token,
-            'title' => $link['title'],
-            'total_draws' => $link['total_draws'],
+            'trial' => $trial,
+            'title' => $linkTitle,
+            'total_draws' => $totalDraws,
             'used_draws' => $used,
-            'customer_name' => $link['customer_name'],
-            'customer_amount' => $link['customer_amount'],
+            'customer_name' => $custName,
+            'customer_amount' => $custAmount,
             'prizes' => array_map(function ($p) {
                 return [
                     'id' => $p['id'], 'level' => $p['level'], 'name' => $p['name'],
                     'value' => $p['value'], 'images' => $p['images'], 'color' => $p['color'],
+                    'desc' => $p['desc'] ?? '',
                 ];
             }, $pool),
             'draws' => array_map(function ($d) {
@@ -74,18 +67,22 @@ class Frontend
                         'id' => $d['prize']['id'], 'level' => $d['prize']['level'],
                         'name' => $d['prize']['name'], 'value' => $d['prize']['value'],
                         'images' => $d['prize']['images'], 'color' => $d['prize']['color'],
+                        'desc' => $d['prize']['desc'] ?? '',
                     ],
                 ];
             }, $draws),
             'intro_text' => $intro,
             'customer_service' => $cs,
+            'texts' => $T,
         ], JSON_UNESCAPED_UNICODE);
+
+        $spinLabel = $trial ? '🎃 免费试玩' : ($T['spin_button'] ?: '抽奖');
 
         $body = '
         <div class="app">
             <header class="app-header">
                 <h1 id="siteTitle">' . $this->e($title) . '</h1>
-                <div class="link-title" id="linkTitle"></div>
+                ' . ($linkTitle !== '' ? '<div class="link-title" id="linkTitle">' . $this->e($linkTitle) . '</div>' : '<div class="link-title" id="linkTitle"></div>') . '
             </header>
 
             <main class="main">
@@ -93,35 +90,38 @@ class Frontend
                     <div class="wheel-wrap">
                         <canvas id="wheel" width="420" height="420"></canvas>
                         <div class="wheel-pointer">▼</div>
-                        <button id="spinBtn" class="spin-btn">抽奖</button>
+                        <button id="spinBtn" class="spin-btn">' . $this->e($spinLabel) . '</button>
                     </div>
                     <div class="draws-left" id="drawsLeft"></div>
+                    ' . ($trial ? '<div class="trial-badge" id="trialBadge">🎃 ' . $this->e($T['trial_badge'] ?? '试玩模式') . '</div>' : '') . '
+                    <button id="prizeDetailBtn" class="btn-ghost prize-detail-btn">' . $this->e($T['prize_detail_btn'] ?? '🎁 奖品详情') . '</button>
                 </section>
 
                 <aside class="side">
                     <div class="card customer-card">
-                        <h3>领取信息（请如实填写）</h3>
-                        <p class="hint">姓名须与订单收件人一致，金额单位：韩元</p>
-                        <input id="custName" class="input" placeholder="您的姓名" />
-                        <input id="custAmount" class="input" placeholder="实际消费金额（韩元）" inputmode="numeric" />
+                        <h3>' . $this->e($T['customer_title'] ?? '领取信息') . '</h3>
+                        ' . ($linkTitle !== '' ? '<div class="link-note" id="linkNote">📌 ' . $this->e($linkTitle) . '</div>' : '') . '
+                        <p class="hint">' . $this->e($T['customer_hint'] ?? '') . '</p>
+                        <input id="custName" class="input" placeholder="您的姓名" value="' . $this->e($custName) . '">
+                        <input id="custAmount" class="input" placeholder="实际消费金额（韩元）" inputmode="numeric" value="' . $this->e($custAmount) . '">
                         <button id="saveCust" class="btn-ghost">保存信息</button>
                         <div id="custMsg" class="msg"></div>
                     </div>
 
                     <div class="card prize-col">
-                        <h3>🎁 我的奖品栏</h3>
+                        <h3>' . $this->e($T['prize_col_title'] ?? '🎁 我的奖品栏') . '</h3>
                         <ul id="prizeList" class="prize-list"></ul>
-                        <p class="hint">抽奖完成后请<strong>截图保存本页</strong>发给工作人员核对。</p>
+                        <p class="hint">' . $this->e($T['prize_col_hint'] ?? '') . '</p>
                     </div>
 
                     <div class="card cs-card">
-                        <h3>客服联系方式</h3>
+                        <h3>' . $this->e($T['cs_title'] ?? '客服联系方式') . '</h3>
                         <div class="cs-text">' . $this->nl2br($this->e($cs)) . '</div>
                     </div>
                 </aside>
             </main>
 
-            ' . $this->introBlock($intro) . '
+            ' . $this->introBlock($intro, $T) . '
         </div>
 
         <!-- 结果弹窗 -->
@@ -133,7 +133,16 @@ class Frontend
                 <p id="resValue" class="res-value"></p>
                 <p id="resNote" class="res-note"></p>
                 <div id="resImages" class="res-images"></div>
-                <button id="resClose" class="btn-primary">收入奖品栏</button>
+                <button id="resClose" class="btn-primary">' . $this->e($T['result_claim'] ?? '收入奖品栏') . '</button>
+            </div>
+        </div>
+
+        <!-- 奖品详情弹窗 -->
+        <div id="detailMask" class="modal-mask">
+            <div class="modal modal-wide">
+                <h2>' . $this->e($T['prize_detail_title'] ?? '奖品详情') . '</h2>
+                <div id="detailList" class="detail-list"></div>
+                <button id="detailClose" class="btn-primary">关闭</button>
             </div>
         </div>
 
@@ -146,15 +155,15 @@ class Frontend
         return new \Workerman\Protocols\Http\Response(200, ['Content-Type' => 'text/html; charset=utf-8'], $html);
     }
 
-    private function introBlock(string $intro): string
+    private function introBlock(string $intro, array $T): string
     {
         if ($intro === '') {
             return '';
         }
         return '
         <section class="intro card">
-            <details>
-                <summary>📜 抽奖活动须知</summary>
+            <details open>
+                <summary>' . $this->e($T['notice_title'] ?? '📜 抽奖活动须知') . '</summary>
                 <pre class="intro-text">' . $this->e($intro) . '</pre>
             </details>
         </section>';

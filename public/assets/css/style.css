@@ -14,6 +14,7 @@ body {
   background: radial-gradient(circle at 50% 0%, #3a1f5c 0%, var(--bg) 60%);
   color: var(--text);
   min-height: 100vh;
+  overflow-x: hidden;
 }
 a { color: var(--orange); }
 
@@ -33,7 +34,7 @@ a { color: var(--orange); }
 }
 
 /* ---------- 主界面 ---------- */
-.app { max-width: 1080px; margin: 0 auto; padding: 20px; }
+.app { max-width: 1200px; margin: 0 auto; padding: 20px; }
 .app-header { text-align: center; margin-bottom: 14px; }
 .app-header h1 { margin: 0; font-size: 26px; color: var(--orange); text-shadow: 0 2px 12px rgba(255,117,24,.4); }
 .link-title { color: var(--muted); font-size: 14px; margin-top: 4px; }
@@ -41,7 +42,7 @@ a { color: var(--orange); }
 @media (max-width: 880px) { .main { grid-template-columns: 1fr; } }
 
 .wheel-area { text-align: center; }
-.wheel-wrap { position: relative; width: 420px; max-width: 100%; margin: 0 auto; }
+.wheel-wrap { position: relative; width: min(440px, 92vw); max-width: 100%; margin: 0 auto; }
 #wheel { width: 100%; height: auto; display: block; filter: drop-shadow(0 10px 30px rgba(0,0,0,.5)); }
 .wheel-pointer {
   position: absolute; top: -6px; left: 50%; transform: translateX(-50%);
@@ -124,3 +125,22 @@ a { color: var(--orange); }
 .login-form .input { margin-bottom: 12px; }
 .err { color: #ff7676; margin: 0 0 10px; }
 .alert { background: #1e7a4d; color: #fff; padding: 10px 14px; border-radius: 10px; margin-bottom: 14px; }
+
+/* ---------- 试玩 / 链接备注 / 奖品详情 ---------- */
+.trial-badge { display: inline-block; margin-top: 10px; padding: 4px 12px; border-radius: 999px; background: rgba(255,117,24,.18); color: var(--orange); font-size: 13px; font-weight: 700; }
+.trial-tip { color: var(--muted); font-size: 13px; }
+.link-note { margin: 0 0 8px; padding: 8px 10px; border-radius: 10px; background: #160c2a; color: var(--orange); font-size: 13px; border: 1px dashed rgba(255,117,24,.5); word-break: break-all; }
+.prize-detail-btn { margin-top: 16px; }
+.detail-list { text-align: left; max-height: 62vh; overflow: auto; margin: 10px 0 16px; }
+.detail-item { background: #160c2a; border-radius: 12px; padding: 12px; margin-bottom: 12px; }
+.di-head { display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; border-left: 4px solid var(--orange); padding-left: 10px; margin-bottom: 8px; }
+.di-level { font-weight: 800; color: var(--orange); }
+.di-name { font-weight: 700; }
+.di-value { color: var(--muted); font-size: 13px; }
+.di-imgs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 6px; }
+.di-imgs img { width: 72px; height: 72px; object-fit: cover; border-radius: 8px; background: #2a1a45; }
+.di-desc { color: var(--text); font-size: 13px; line-height: 1.6; margin: 4px 0 0; white-space: pre-wrap; word-break: break-word; }
+.modal-wide { max-width: 640px; }
+@media (max-width: 520px) {
+  .di-imgs img { width: 60px; height: 60px; }
+}
