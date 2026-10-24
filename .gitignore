@@ -1,0 +1,6 @@
+/vendor/
+/data/
+/public/assets/uploads/*
+!/public/assets/uploads/.gitkeep
+workerman.log
+.workbuddy/

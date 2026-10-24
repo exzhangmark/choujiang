@@ -1,0 +1,126 @@
+:root {
+  --bg: #1a0f2e;
+  --bg2: #2a1a45;
+  --orange: #ff7518;
+  --purple: #8e2de2;
+  --card: #241640;
+  --text: #f3e9ff;
+  --muted: #b9a7d6;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  background: radial-gradient(circle at 50% 0%, #3a1f5c 0%, var(--bg) 60%);
+  color: var(--text);
+  min-height: 100vh;
+}
+a { color: var(--orange); }
+
+/* ---------- 无机会页 ---------- */
+.gate { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+.gate-card {
+  background: var(--card); border-radius: 20px; padding: 40px; max-width: 520px; width: 100%;
+  text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,.4); border: 1px solid rgba(255,117,24,.3);
+}
+.gate-card h1 { margin: 0 0 8px; font-size: 28px; }
+.gate-icon { font-size: 64px; margin: 10px 0; }
+.gate-title { font-size: 20px; font-weight: 700; color: var(--orange); margin: 8px 0; }
+.gate-desc { color: var(--muted); line-height: 1.7; }
+.cs-box {
+  margin-top: 18px; background: #160c2a; border: 1px dashed var(--orange);
+  border-radius: 12px; padding: 14px; white-space: pre-wrap; color: var(--text); text-align: left; font-size: 14px;
+}
+
+/* ---------- 主界面 ---------- */
+.app { max-width: 1080px; margin: 0 auto; padding: 20px; }
+.app-header { text-align: center; margin-bottom: 14px; }
+.app-header h1 { margin: 0; font-size: 26px; color: var(--orange); text-shadow: 0 2px 12px rgba(255,117,24,.4); }
+.link-title { color: var(--muted); font-size: 14px; margin-top: 4px; }
+.main { display: grid; grid-template-columns: 1.1fr .9fr; gap: 22px; align-items: start; }
+@media (max-width: 880px) { .main { grid-template-columns: 1fr; } }
+
+.wheel-area { text-align: center; }
+.wheel-wrap { position: relative; width: 420px; max-width: 100%; margin: 0 auto; }
+#wheel { width: 100%; height: auto; display: block; filter: drop-shadow(0 10px 30px rgba(0,0,0,.5)); }
+.wheel-pointer {
+  position: absolute; top: -6px; left: 50%; transform: translateX(-50%);
+  color: var(--orange); font-size: 34px; line-height: 1; z-index: 3; text-shadow: 0 2px 4px #000;
+}
+.spin-btn {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+  width: 88px; height: 88px; border-radius: 50%; border: 4px solid #fff;
+  background: radial-gradient(circle at 30% 30%, #ff9d4d, var(--orange));
+  color: #fff; font-size: 20px; font-weight: 800; cursor: pointer; z-index: 2;
+  box-shadow: 0 6px 16px rgba(0,0,0,.5);
+}
+.spin-btn:disabled { background: #6b5a85; cursor: not-allowed; }
+.draws-left { margin-top: 14px; font-size: 15px; color: var(--muted); }
+.draws-left b { color: var(--orange); font-size: 18px; }
+
+/* ---------- 卡片 ---------- */
+.card { background: var(--card); border-radius: 16px; padding: 18px; margin-bottom: 18px; border: 1px solid rgba(255,255,255,.06); }
+.card h3 { margin: 0 0 12px; font-size: 16px; }
+.hint { color: var(--muted); font-size: 13px; line-height: 1.6; }
+.input {
+  width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid #4a3a6b;
+  background: #160c2a; color: var(--text); margin-top: 8px; font-size: 14px;
+}
+.input.mini { margin-top: 0; }
+.customer-card .input { margin-bottom: 8px; }
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--orange), #ff5e3a); color: #fff; border: none;
+  padding: 11px 20px; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 6px;
+}
+.btn-ghost {
+  background: transparent; color: var(--muted); border: 1px solid #4a3a6b;
+  padding: 8px 14px; border-radius: 10px; cursor: pointer; font-size: 13px;
+}
+.btn-danger { background: #c0392b; color:#fff; border:none; padding:6px 10px; border-radius:8px; cursor:pointer; font-size:12px; }
+.msg { font-size: 13px; margin-top: 8px; min-height: 16px; }
+.cs-text { white-space: pre-wrap; color: var(--text); font-size: 14px; line-height: 1.7; }
+
+/* ---------- 奖品栏 ---------- */
+.prize-list { list-style: none; margin: 0; padding: 0; }
+.prize-list li {
+  display: flex; gap: 12px; align-items: center; background: #160c2a; border-radius: 12px;
+  padding: 10px; margin-bottom: 10px; border-left: 4px solid var(--purple);
+}
+.prize-list li img { width: 56px; height: 56px; object-fit: cover; border-radius: 8px; background:#2a1a45; }
+.prize-list .pi-meta { flex: 1; }
+.prize-list .pi-level { font-weight: 700; color: var(--orange); }
+.prize-list .pi-name { font-size: 14px; }
+.prize-list .pi-value { font-size: 12px; color: var(--muted); }
+.prize-list .pi-idx { font-size: 12px; color: var(--muted); }
+
+/* ---------- 须知 ---------- */
+.intro { margin-top: 8px; }
+.intro summary { cursor: pointer; font-weight: 700; color: var(--orange); padding: 4px 0; }
+.intro-text { white-space: pre-wrap; line-height: 1.8; font-size: 13px; color: var(--muted); max-height: 420px; overflow:auto; }
+
+/* ---------- 弹窗 ---------- */
+.modal-mask {
+  position: fixed; inset: 0; background: rgba(0,0,0,.7); display: none;
+  align-items: center; justify-content: center; z-index: 100; padding: 20px;
+}
+.modal-mask.show { display: flex; }
+.modal {
+  background: var(--card); border-radius: 20px; padding: 30px; max-width: 380px; width: 100%;
+  text-align: center; border: 1px solid rgba(255,117,24,.4); box-shadow: 0 20px 60px rgba(0,0,0,.6);
+}
+.modal-badge { font-size: 56px; }
+.modal h2 { margin: 6px 0; color: var(--orange); }
+.res-name { font-size: 18px; font-weight: 700; margin: 4px 0; }
+.res-value { color: var(--muted); margin: 0 0 12px; }
+.res-note { color: #ffd479; font-size: 13px; margin: 0 0 10px; min-height: 16px; }
+.res-images { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 16px; }
+.res-images img { width: 80px; height: 80px; object-fit: cover; border-radius: 10px; background:#2a1a45; }
+
+/* ---------- 后台共用 ---------- */
+.login-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+.login-form { background: var(--card); padding: 36px; border-radius: 16px; width: 320px; text-align: center; border: 1px solid rgba(255,117,24,.3); }
+.login-form h1 { margin: 0 0 18px; color: var(--orange); }
+.login-form .input { margin-bottom: 12px; }
+.err { color: #ff7676; margin: 0 0 10px; }
+.alert { background: #1e7a4d; color: #fff; padding: 10px 14px; border-radius: 10px; margin-bottom: 14px; }

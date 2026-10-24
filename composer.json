@@ -1,0 +1,19 @@
+{
+    "name": "choujiang/halloween-lottery",
+    "description": "Halloween wheel lottery built with PHP + Workerman (no Apache/Nginx needed)",
+    "type": "project",
+    "require": {
+        "php": ">=8.1",
+        "workerman/workerman": "^5.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    },
+    "scripts": {
+        "start": "php start.php start",
+        "stop": "php start.php stop",
+        "restart": "php start.php restart -d"
+    }
+}
