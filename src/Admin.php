@@ -52,7 +52,9 @@ class Admin
         $pw = (string)($req->post('password') ?? '');
         $hash = Db::get('admin_password');
         if ($hash && password_verify($pw, $hash)) {
-            $resp = new Response(302, ['Location' => '/admin']);
+            // 登录后保留 webedit 模式
+            $location = ($req->get('webedit') !== null) ? '/admin?webedit' : '/admin';
+            $resp = new Response(302, ['Location' => $location]);
             return $resp->cookie(ADMIN_COOKIE, $this->adminToken(), ADMIN_COOKIE_TTL, '/', '', false, true);
         }
         return $this->loginPage('密码错误');
@@ -319,6 +321,9 @@ class Admin
         ];
         $frontendTexts = Db::getFrontendTexts();
 
+        // “前台文案”模块默认隐藏，仅当通过 ?webedit 进入后台时才显示
+        $webedit = $req->get('webedit') !== null || $req->post('webedit') !== null;
+
         // 编辑中的奖项
         $editId = (int)($req->get('edit_prize') ?? 0);
         $editPrize = $editId > 0 ? Db::getPrize($editId) : null;
@@ -330,7 +335,7 @@ class Admin
                     <div class="admin-nav">
                         <a href="#sec-links">抽奖链接</a>
                         <a href="#sec-prizes">奖项设置</a>
-                        <a href="#sec-texts">前台文案</a>
+                        ' . ($webedit ? '<a href="#sec-texts">前台文案</a>' : '') . '
                         <a href="#sec-update">系统更新</a>
                         <a href="/" target="_blank">前台预览</a>
                         <form method="post" action="/admin/logout" style="display:inline">
@@ -354,6 +359,7 @@ class Admin
                     ' . $this->prizeTable($prizes) . '
                 </section>
 
+                ' . ($webedit ? '
                 <section id="sec-texts" class="sec">
                     <h2>前台文案（展示给访客的文字）</h2>
                     ' . $this->textsForm($frontendTexts) . '
@@ -361,7 +367,7 @@ class Admin
                     ' . $this->siteSettingsForm($settings) . '
                     <h3>修改后台密码</h3>
                     ' . $this->passwordForm() . '
-                </section>
+                </section>' : '') . '
 
                 <section id="sec-update" class="sec">
                     <h2>系统更新（一键更新）</h2>
@@ -523,6 +529,7 @@ class Admin
         return '
         <form class="card form" method="post" action="/admin">
             <input type="hidden" name="action" value="settings_save">
+            <input type="hidden" name="webedit" value="1">
             <label>站点标题<input class="input" name="site_title" value="' . $this->e($s['site_title']) . '"></label>
             <label>客服联系方式（支持换行，可写微信/Line/电话等）<textarea class="input" name="customer_service" rows="3">' . $this->e($s['customer_service']) . '</textarea></label>
             <label>抽奖须知文案<textarea class="input" name="intro_text" rows="12">' . $this->e($s['intro_text']) . '</textarea></label>
@@ -535,6 +542,7 @@ class Admin
         return '
         <form class="card form" method="post" action="/admin">
             <input type="hidden" name="action" value="settings_save">
+            <input type="hidden" name="webedit" value="1">
             <label>修改后台密码（留空则不修改）<input class="input" type="password" name="admin_password" placeholder="新密码"></label>
             <button class="btn-primary" type="submit">更新密码</button>
         </form>';
@@ -573,6 +581,7 @@ class Admin
         return '
         <form class="card form" method="post" action="/admin">
             <input type="hidden" name="action" value="texts_save">
+            <input type="hidden" name="webedit" value="1">
             ' . $rows . '
             <button class="btn-primary" type="submit">保存文案</button>
         </form>
