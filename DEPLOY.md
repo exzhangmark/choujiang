@@ -31,6 +31,21 @@ git clone https://exzhangmark:你的服务器只读token@github.com/exzhangmark/
 # 4. 运行一键部署脚本
 cd /var/www/lottery
 DOMAIN=lucky.example.com bash deploy.sh
+
+> ⚠️ **复制粘贴大坑（已踩过）**：上面这行 `git clone` 很长，复制时若带入**换行或空格**，bash 会把 URL 截断成多条命令，报 `fatal: repository 'https' does not exist` / `No such file or directory`。
+> 必须保证整条命令是**同一行、URL 内无任何空格**。若总是复制出错，改用下面的「交互式克隆」：
+>
+> ```bash
+> mkdir -p /var/www
+> cd /var/www
+> # 不带 token 克隆，token 在密码提示处粘贴（不回显、不会被换行截断）
+> git clone https://github.com/exzhangmark/choujiang.git lottery
+> #   提示 Username 时输入：exzhangmark
+> #   提示 Password 时粘贴你的 token
+> # 克隆后把 token 写进 remote，供一键更新（www-data 拉取用）
+> git -C /var/www/lottery remote set-url origin https://exzhangmark:你的token@github.com/exzhangmark/choujiang.git
+> ```
+
 ```
 
 - **有域名**：把 `DOMAIN` 换成你的域名 → Caddy 自动签发 HTTPS，访问 `https://域名/`
