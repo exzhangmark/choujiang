@@ -134,8 +134,13 @@ class Frontend
             <div class="modal modal-wide">
                 <h2>' . $this->e($T['prize_detail_title'] ?? '奖品详情') . '</h2>
                 <div id="detailList" class="detail-list"></div>
-                <button id="detailClose" class="btn-primary">关闭</button>
+                <button id="detailClose" class="btn-primary">' . $this->e($T['prize_detail_close'] ?? '关闭') . '</button>
             </div>
+        </div>
+
+        <!-- 图片放大遮罩 -->
+        <div id="lightboxMask" class="lightbox-mask">
+            <img id="lightboxImg" src="" alt="">
         </div>
 
         <script>window.__LOTTERY__ = ' . $bootstrap . ';</script>

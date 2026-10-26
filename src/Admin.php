@@ -574,6 +574,7 @@ class Admin
             'notice_title' => ['label' => '活动须知标题', 'type' => 'input'],
             'prize_detail_btn' => ['label' => '奖品详情按钮文字', 'type' => 'input'],
             'prize_detail_title' => ['label' => '奖品详情弹窗标题', 'type' => 'input'],
+            'prize_detail_close' => ['label' => '奖品详情关闭按钮文字', 'type' => 'input'],
         ];
         $rows = '';
         foreach ($fields as $k => $f) {
@@ -596,7 +597,7 @@ class Admin
 
     private function textsSave(Request $req): Response
     {
-        $keys = ['gate_title', 'gate_desc', 'gate_contact_label', 'customer_title', 'prize_col_title', 'prize_col_hint', 'cs_title', 'spin_button', 'trial_badge', 'trial_spin_button', 'spinning_text', 'trial_note', 'draws_left', 'result_claim', 'notice_title', 'prize_detail_btn', 'prize_detail_title'];
+        $keys = ['gate_title', 'gate_desc', 'gate_contact_label', 'customer_title', 'prize_col_title', 'prize_col_hint', 'cs_title', 'spin_button', 'trial_badge', 'trial_spin_button', 'spinning_text', 'trial_note', 'draws_left', 'result_claim', 'notice_title', 'prize_detail_btn', 'prize_detail_title', 'prize_detail_close'];
         $data = [];
         foreach ($keys as $k) {
             $data[$k] = trim((string)($req->post($k) ?? ''));

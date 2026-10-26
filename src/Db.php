@@ -126,6 +126,7 @@ class Db
             'notice_title' => '📜 抽奖活动须知',
             'prize_detail_btn' => '🎁 奖品详情',
             'prize_detail_title' => '奖品详情',
+            'prize_detail_close' => '关闭',
         ];
         return is_array($t) ? array_merge($defaults, $t) : $defaults;
     }

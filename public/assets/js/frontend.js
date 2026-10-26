@@ -183,6 +183,20 @@
     $('#detailMask').classList.remove('show');
   });
 
+  // 奖品详情图片点击放大查看（手机端/桌面端通用，事件委托兼容动态生成图片）
+  document.addEventListener('click', function (e) {
+    const t = e.target;
+    if (t && t.tagName === 'IMG' && t.closest && t.closest('.di-imgs')) {
+      const lb = document.getElementById('lightboxImg');
+      if (lb) lb.src = t.src;
+      const mask = document.getElementById('lightboxMask');
+      if (mask) mask.classList.add('show');
+    }
+  });
+  $('#lightboxMask').addEventListener('click', function () {
+    this.classList.remove('show');
+  });
+
   // 领取信息不再需要保存（仅展示后台链接备注/标题），已移除输入框与保存按钮
 
   function escapeHtml(s) {
