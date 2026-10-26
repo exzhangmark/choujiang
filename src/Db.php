@@ -86,6 +86,9 @@ class Db
         if (self::get('intro_text') === null) {
             self::set('intro_text', self::defaultIntro());
         }
+        if (self::get('show_cs') === null) {
+            self::set('show_cs', '1');
+        }
         if (self::countPrizes() === 0) {
             self::seedPrizes();
         }

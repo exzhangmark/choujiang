@@ -172,6 +172,10 @@ class Admin
         if (array_key_exists('intro_text', $all)) {
             Db::set('intro_text', trim((string)($all['intro_text'] ?? '')));
         }
+        // 站点设置表单提交（以 site_title 是否存在区分）：复选框未勾选时不传 show_cs 键，故按键存在与否判定开关
+        if (array_key_exists('site_title', $all)) {
+            Db::set('show_cs', array_key_exists('show_cs', $all) ? '1' : '0');
+        }
         if (array_key_exists('admin_password', $all)) {
             $newPw = (string)($all['admin_password'] ?? '');
             if ($newPw !== '') {
@@ -318,6 +322,7 @@ class Admin
             'site_title' => Db::get('site_title'),
             'customer_service' => Db::get('customer_service'),
             'intro_text' => Db::get('intro_text'),
+            'show_cs' => Db::get('show_cs'),
         ];
         $frontendTexts = Db::getFrontendTexts();
 
@@ -533,6 +538,7 @@ class Admin
             <label>站点标题<input class="input" name="site_title" value="' . $this->e($s['site_title']) . '"></label>
             <label>客服联系方式（支持换行，可写微信/Line/电话等）<textarea class="input" name="customer_service" rows="3">' . $this->e($s['customer_service']) . '</textarea></label>
             <label>抽奖须知文案<textarea class="input" name="intro_text" rows="12">' . $this->e($s['intro_text']) . '</textarea></label>
+            <label class="chk"><input type="checkbox" name="show_cs" value="1"' . (!empty($s['show_cs']) ? ' checked' : '') . '> 在前台显示客服联系方式模块</label>
             <button class="btn-primary" type="submit">保存设置</button>
         </form>';
     }

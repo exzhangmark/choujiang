@@ -22,11 +22,12 @@ class Frontend
         $link = $token !== '' ? Db::getLinkByToken($token) : null;
         $used = $link ? Db::usedDraws($link['id']) : 0;
         $canDraw = $link && $used < $link['total_draws'];
+        $showCs = Db::get('show_cs') !== '0';
 
-        return $this->wheelPage($T, $siteTitle, $cs, $intro, $link, $token, !$canDraw);
+        return $this->wheelPage($T, $siteTitle, $cs, $intro, $link, $token, !$canDraw, $showCs);
     }
 
-    private function wheelPage(array $T, string $title, string $cs, string $intro, ?array $link, string $token, bool $trial): \Workerman\Protocols\Http\Response
+    private function wheelPage(array $T, string $title, string $cs, string $intro, ?array $link, string $token, bool $trial, bool $showCs): \Workerman\Protocols\Http\Response
     {
         $used = $link ? Db::usedDraws($link['id']) : 0;
         $pool = Db::prizePool();
@@ -104,10 +105,11 @@ class Frontend
                         <p class="hint">' . $this->e($T['prize_col_hint'] ?? '') . '</p>
                     </div>
 
+                    ' . ($showCs ? '
                     <div class="card cs-card">
                         <h3>' . $this->e($T['cs_title'] ?? '客服联系方式') . '</h3>
                         <div class="cs-text">' . $this->nl2br($this->e($cs)) . '</div>
-                    </div>
+                    </div>' : '') . '
                 </aside>
             </main>
 
